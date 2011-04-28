@@ -1,0 +1,65 @@
+<html>
+ <head>
+  <style type="text/css">
+    #canvas{
+      border: 1px black solid;
+    }
+  </style>
+  <script type="application/javascript">
+  
+    var bars=new Array();
+    var bar1 = {x: 190, y:40, width: 100, height: 3};
+    
+    var trigger = {x:5, y:550, width:470, height:2};
+    var FPS = 30.0;
+    var bpm = 120.0;
+    var bps = bpm / 60.0;
+    var speed = 4.0; //pixels per frame
+    var canvas = null;
+    var ctx = null;
+    
+    function init(){
+      canvas = document.getElementById('canvas');
+      ctx = canvas.getContext('2d');
+      
+      ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+      ctx.fillRect (trigger.x, trigger.y, trigger.width, trigger.height);
+      
+      setInterval(draw, 1000 / FPS);
+      setInterval(newbar, 1000 / FPS);
+      
+    }
+    
+    function animate(){
+      for(i=0; i<bars.length; i++){
+        if(bars[i].y > 640){
+          bars.splice(i,i);
+        }
+        bars[i].x -= delta/60*1.25;
+        bars[i].y += delta/60*4.0;
+        bars[i].width += delta/60*2.5;
+        //bars[i].height += 1;
+        
+      }
+    }
+
+    function newbar(){
+      bars.unshift(bar1);
+    }
+
+    function draw() {
+      var canvas = document.getElementById("canvas");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "rgb(200,0,0)";
+      ctx.fillRect (bar1.x, bar1.y, bar1.width, bar1.height);
+      animate();
+    }
+  </script>
+ </head>
+ <body onload="init();">
+  <h1><%= title %></h1>
+  <p>Welcome to <%= title %></p>
+
+  <canvas id="canvas" width="480" height="640"></canvas>
+ </body>
+</html>
