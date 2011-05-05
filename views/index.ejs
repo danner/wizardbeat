@@ -5,61 +5,98 @@
       border: 1px black solid;
     }
   </style>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.6.0/jquery.min.js" type="text/javascript"></script>
   <script type="application/javascript">
-  
-    var bars=new Array();
-    var bar1 = {x: 190, y:40, width: 100, height: 3};
+    window = {width:480, height:640};
+    trigger = {x:5, y:550, width:470, height:2};
+    FPS = 120.0;
+    bpm = 100.0;
+    bpms = bpm / 60.0 / 1000.0;
+    yspeed = 6.0;
+    xspeed = 8.0;
+    canvas = null;
+    ctx = null;
+    startbeat = Date.now();
     
-    var trigger = {x:5, y:550, width:470, height:2};
-    var FPS = 30.0;
-    var bpm = 120.0;
-    var bps = bpm / 60.0;
-    var speed = 4.0; //pixels per frame
-    var canvas = null;
-    var ctx = null;
+    var Key = {
+      _pressed: {},
+ 
+      LEFT: 37,
+      UP: 38,
+      RIGHT: 39,
+      DOWN: 40,
+ 
+      isDown: function(keyCode) {
+        return this._pressed[keyCode];
+      },
+ 
+      onKeydown: function(event) {
+        this._pressed[event.keyCode] = true;
+      },
+ 
+      onKeyup: function(event) {
+        delete this._pressed[event.keyCode];
+      }
+    };
+        
+    window.addEventListener('keyup', function(event) { Key.onKeyup(event); }, false);
+    window.addEventListener('keydown', function(event) { Key.onKeydown(event); }, false);
+ 
     
     function init(){
       canvas = document.getElementById('canvas');
       ctx = canvas.getContext('2d');
-      
-      ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
-      ctx.fillRect (trigger.x, trigger.y, trigger.width, trigger.height);
-      
+      background();
       setInterval(draw, 1000 / FPS);
-      setInterval(newbar, 1000 / FPS);
-      
+      startbeat = Date.now();
     }
     
-    function animate(){
-      for(i=0; i<bars.length; i++){
-        if(bars[i].y > 640){
-          bars.splice(i,i);
-        }
-        bars[i].x -= delta/60*1.25;
-        bars[i].y += delta/60*4.0;
-        bars[i].width += delta/60*2.5;
-        //bars[i].height += 1;
-        
+    function background(){
+      ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+      ctx.fillRect (trigger.x, trigger.y, trigger.width, trigger.height);
+    }
+    
+    function beatbars(timetilbeat){
+      ctx.fillStyle = "rgba(255, 0, 0, 1.0)";
+      var ydistance_between_beats = (1/bpms)/yspeed;
+      var xdistance_between_beats = (1/bpms)/xspeed;
+      var y = trigger.y - ydistance_between_beats + timetilbeat/yspeed;
+      var x = trigger.x - xdistance_between_beats + timetilbeat/xspeed;
+      while(y>0){
+        ctx.fillRect(trigger.x-x/2, y, trigger.width+x, trigger.height+5 + x/60.0);
+        y -= ydistance_between_beats;
+        x -= xdistance_between_beats;
       }
     }
-
-    function newbar(){
-      bars.unshift(bar1);
+    
+    function keys(){
+      //if (Key.isDown(Key.UP)){
+      //  this.moveUp();
+      //}
+      if (Key.isDown(Key.LEFT)){
+        ctx.fillStyle = "rgba(255, 0, 0, 1.0)";
+        ctx.fillRect(0, trigger.y, window.width/3, window.height);
+      }
+      if (Key.isDown(Key.DOWN)) this.moveDown();
+      if (Key.isDown(Key.RIGHT)) this.moveRight();
     }
-
+    
     function draw() {
-      var canvas = document.getElementById("canvas");
+      timeInMs = Date.now();
+      canvas = document.getElementById("canvas");
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = "rgb(200,0,0)";
-      ctx.fillRect (bar1.x, bar1.y, bar1.width, bar1.height);
-      animate();
+      background();
+      timefromstart = Date.now() - startbeat;
+      timetilbeat = timefromstart % (1/bpms);
+      beatbars(timetilbeat);
+      keys();
     }
   </script>
  </head>
  <body onload="init();">
-  <h1><%= title %></h1>
-  <p>Welcome to <%= title %></p>
-
   <canvas id="canvas" width="480" height="640"></canvas>
+  <div id="data">
+  <p id="variable"></p>
+  </div>
  </body>
 </html>
