@@ -4,16 +4,28 @@
     #canvas{
       border: 1px black solid;
     }
+    #actiontree{
+      border: 1px black solid;
+    }
+    #actiontree div{
+      border: 1px black dashed;
+      margin: 1px 2px 1px 5px;
+      padding: 2px;
+    }
   </style>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.6.0/jquery.min.js" type="text/javascript"></script>
   <script type="application/javascript">
     windowbox = {width:480, height:640};
     trigger = {x:5, y:550, width:470, height:2};
-    FPS = 120.0;
-    bpm = 100.0;
+    FPS = 30.0;
+    bpm = 120.0;
+    
+    keybuffer = new Array;
+    
     bpms = bpm / 60.0 / 1000.0;
     yspeed = 6.0;
     xspeed = 8.0;
+    
     canvas = null;
     ctx = null;
     startbeat = Date.now();
@@ -72,10 +84,43 @@
       }
     }
     
+    
+    function cast(keybuffer){
+      //see if anything was cast this beat.
+      tree = $('#actiontree');
+      for(i=0; i< keybuffer.length; i++){
+        spell_string = keybuffer.slice(0,i).join("_");
+        spell = $("#"+spell_string).text();
+        if(spell){
+          $('#variable').text(spell);
+        }
+      }
+    }
+    
+    function onbeat(){
+      ctx.fillStyle = "rgba(0, 0, 255, 1)";
+      ctx.fillRect (trigger.x, trigger.y, trigger.width, trigger.height-10);
+      var keys = "";
+      if (Key.isDown(Key.A)){
+        keys = keys.concat("r");
+      }
+      if (Key.isDown(Key.S)){
+        keys = keys.concat("g");
+      }
+      if (Key.isDown(Key.D)){
+        keys = keys.concat("b");
+      }
+      if(keys == ""){
+        keys = "0";
+      }
+      keybuffer.unshift(keys); //eventually should be an object array.
+      if(keybuffer.length > 8){
+        keybuffer = keybuffer.slice(0, 8);
+      }
+      cast(keybuffer);
+    }
+    
     function keys(){
-      //if (Key.isDown(Key.UP)){
-      //  this.moveUp();
-      //}
       if (Key.isDown(Key.A)){
         ctx.fillStyle = "rgba(255, 0, 0, 1.0)";
         ctx.fillRect(0, trigger.y, windowbox.width/3, windowbox.height-trigger.y);
@@ -94,18 +139,31 @@
       timeInMs = Date.now();
       canvas = document.getElementById("canvas");
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      background();
       timefromstart = Date.now() - startbeat;
       timetilbeat = timefromstart % (1/bpms);
-      beatbars(timetilbeat);
+      $('#variable').text(keybuffer);
       keys();
+      background();
+      beatbars(timetilbeat);
+      if(timetilbeat <= 1.0/FPS*1000){
+        onbeat(); //gotta have a guarenteed way this will be called, and only once.
+      }
     }
   </script>
  </head>
  <body onload="init();">
-  <canvas id="canvas" width="480" height="640"></canvas>
-  <div id="data">
-  <p id="variable"></p>
+  <canvas style="float:left" id="canvas" width="480" height="640"></canvas>
+  <div style="float:left" id="data">
+    <p id="variable"></p>
+    <p id="trigger"></p>
+    <div id="actiontree">
+      <div id="r_r">ready to speed up</div>
+      <div id="r_r_r">speed up</div>
+      <div id="b_b">ready to slow down</div>
+      <div id="b_b_b">speed down</div>
+      <div id="rgb_rgb_rgb">spammer!</div>
+    </div>
+  
   </div>
  </body>
 </html>
